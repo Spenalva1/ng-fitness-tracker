@@ -1,0 +1,29 @@
+form {
+  width: 375px;
+  padding: 15px;
+}
+
+mat-form-field {
+  margin: 10px 0;
+}
+
+button[type="submit"] {
+  margin-top: 15px;
+}
+
+.pw-length {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+mat-checkbox {
+  margin: 0 10px;
+}
+
+a {
+  text-decoration: underline;
+  color: #300C72;
+  margin: 15px 10px 0 10px;
+}

@@ -1,1 +1,33 @@
-<p>signup works!</p>
+<section class="content" fxLayoutAlign="center center">
+  <form #f="ngForm" (ngSubmit)="onSubmit(f.form)" fxLayout="column">
+    <mat-form-field>
+      <mat-label>Your email</mat-label>
+      <input matInput type="email" ngModel name="email" required email #emailInput="ngModel">
+      <mat-error *ngIf="emailInput.value?.length === 0 && emailInput.touched">Please enter an email.</mat-error>
+      <mat-error *ngIf="emailInput.value?.length > 0">Email is invalid.</mat-error>
+    </mat-form-field>
+    <mat-form-field hintLabel="Should be at least 6 characters long.">
+      <mat-label>Your password</mat-label>
+      <input matInput type="password" ngModel name="password" required minlength="6" #pwInput="ngModel" [type]="showPassword ? 'text' : 'password'">
+      <button style="transform: scale(1.25);" mat-icon-button matSuffix (click)="showPassword = !showPassword" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="showPassword">
+        <mat-icon>{{showPassword ? 'visibility' : 'visibility_off'}}</mat-icon>
+        </button>
+      <mat-hint align="end">{{ pwInput.value?.length }} / 6</mat-hint>
+      <mat-error *ngIf="pwInput.hasError('required')">Please enter a password.</mat-error>
+      <mat-error *ngIf="!pwInput.hasError('required')">
+        Should be at least 6 characters long.
+        <span class="pw-length">{{ pwInput.value?.length }} / 6</span>
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Select your birthday</mat-label>
+      <input matInput [max]="maxDate" [matDatepicker]="picker" ngModel name="birthday" required>
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+
+    </mat-form-field>
+    <mat-checkbox ngModel required name="agree" color="primary">Agree to term and conditions.</mat-checkbox>
+    <button style="align-self: center" [disabled]="f.invalid" mat-raised-button color="primary" type="submit">Signup</button>
+    <a color="primary" routerLink="/login">Have an account? Go to Login page</a>
+  </form>
+</section>
