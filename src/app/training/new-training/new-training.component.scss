@@ -4,4 +4,8 @@
   mat-card-content {
     margin: 0;
   }
+
+  button[type="submit"] {
+    margin-bottom: 15px;
+  }
 }

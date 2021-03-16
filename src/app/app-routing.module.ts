@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { IsAuthGuard, IsNotAuthGuard } from './auth/auth.guard';
 import { LoginComponent } from './auth/login/login.component';
 import { SignupComponent } from './auth/signup/signup.component';
 import { CurrentTrainingComponent } from './training/current-training/current-training.component';
@@ -10,9 +11,9 @@ import { WelcomeComponent } from './welcome/welcome.component';
 
 const routes: Routes = [
   { path: '', pathMatch: 'full', component: WelcomeComponent},
-  { path: 'signup', component: SignupComponent},
-  { path: 'login', component: LoginComponent},
-  { path: 'training', component: TrainingComponent},
+  { path: 'signup', canActivate: [IsNotAuthGuard], component: SignupComponent},
+  { path: 'login', canActivate: [IsNotAuthGuard], component: LoginComponent},
+  { path: 'training', canActivate: [IsAuthGuard], component: TrainingComponent},
   { path: 'new-training', component: NewTrainingComponent},
   { path: 'past-trainings', component: PastTrainingsComponent},
   { path: 'current-trainings', component: CurrentTrainingComponent}
