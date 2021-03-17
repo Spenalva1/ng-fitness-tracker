@@ -1,1 +1,54 @@
-<p>past-trainings works!</p>
+<section fxLayoutAlign="center" *ngIf="pastExercises.length > 0">
+  <div class="table-wrapper" fxFlex="100%" fxFlex.gt-sm="909px">
+    <mat-form-field>
+      <mat-label>Filter</mat-label>
+      <input matInput (keyup)="applyFilter($event)" #input>
+    </mat-form-field>
+
+    <div class="mat-elevation-z8">
+      <table mat-table [dataSource]="dataSource" matSort>
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
+          <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+        </ng-container>
+
+        <!-- Duration Column -->
+        <ng-container matColumnDef="duration">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Duration </th>
+          <td mat-cell *matCellDef="let element"> {{element.duration | number}} </td>
+        </ng-container>
+
+        <!-- Calories Column -->
+        <ng-container matColumnDef="calories">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Calories </th>
+          <td mat-cell *matCellDef="let element"> {{element.calories | number}} </td>
+        </ng-container>
+
+        <!-- Date Column -->
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
+          <td mat-cell *matCellDef="let element"> {{element.date | date:'M/d/y - HH:mm'}} </td>
+        </ng-container>
+
+        <!-- State Column -->
+        <ng-container matColumnDef="state">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> State </th>
+          <td mat-cell
+          *matCellDef="let element"
+          [ngStyle]="{'color': element.state === 'cancelled' ? 'red' : 'lightgreen'}"> {{element.state | titlecase}} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"></mat-paginator>
+    </div>
+
+  </div>
+</section>
+
+<section *ngIf="pastExercises.length === 0">
+  <h2>No past exercises</h2>
+</section>

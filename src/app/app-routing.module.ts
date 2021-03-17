@@ -16,7 +16,8 @@ const routes: Routes = [
   { path: 'training', canActivate: [IsAuthGuard], component: TrainingComponent},
   { path: 'new-training', component: NewTrainingComponent},
   { path: 'past-trainings', component: PastTrainingsComponent},
-  { path: 'current-trainings', component: CurrentTrainingComponent}
+  { path: 'current-trainings', component: CurrentTrainingComponent},
+  { path: '**', redirectTo: '/'},
 ];
 
 @NgModule({
