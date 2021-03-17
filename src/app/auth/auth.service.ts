@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { AngularFireAuth } from '@angular/fire/auth';
 import { Subject } from 'rxjs';
 import { AuthData } from './auth-data.model';
 import { User } from './user.model';
@@ -8,46 +9,54 @@ import { User } from './user.model';
   providedIn: 'root'
 })
 export class AuthService {
-  // private user: User = null;
-  private user: User = {
-    email: 'sp@gmail.com',
-    userId: 'Math.round'
-  };
+  private user: User = null;
   public authChange = new Subject<boolean>();
+  private isAuth = false;
 
   constructor(
-    private router: Router
+    private router: Router,
+    private afAuth: AngularFireAuth
   ) {}
 
-  public registerUser(authData: AuthData): void {
-    this.user = {
-      email: authData.email,
-      userId: Math.round(Math.random() * 10000).toString()
-    };
-    this.authChange.next(true);
-    this.router.navigate(['/training']);
+  get _isAuth(): boolean {
+    return this.isAuth;
   }
 
-  public login(authData: AuthData): void {
-    this.user = {
-      email: authData.email,
-      userId: Math.round(Math.random() * 10000).toString()
-    };
-    this.authChange.next(true);
-    this.router.navigate(['/training']);
+  public initAuthListener(): void {
+    this.afAuth.authState.subscribe(user => {
+      if (user) {
+        this.isAuth = true;
+        this.authChange.next(true);
+        this.router.navigate(['/training']);
+      } else {
+        this.isAuth = false;
+        this.authChange.next(false);
+      }
+    });
+  }
+
+  public async registerUser(authData: AuthData): Promise<void> {
+    try {
+      const { user } = await this.afAuth.createUserWithEmailAndPassword(authData.email, authData.password);
+    } catch (error) {
+      console.log('Error ->', error);
+    }
+  }
+
+  public async login(authData: AuthData): Promise<void> {
+    try {
+      const { user } = await this.afAuth.signInWithEmailAndPassword(authData.email, authData.password);
+    } catch (error) {
+      console.log('Error ->', error);
+    }
   }
 
   public logout(): void {
-    this.user = null;
-    this.authChange.next(false);
+    this.afAuth.signOut();
     this.router.navigate(['/']);
   }
 
   public getUser(): User {
     return { ...this.user };
-  }
-
-  public isAuth(): boolean {
-    return this.user !== null;
   }
 }

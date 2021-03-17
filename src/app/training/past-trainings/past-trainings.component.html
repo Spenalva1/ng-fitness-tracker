@@ -1,4 +1,4 @@
-<section fxLayoutAlign="center" *ngIf="pastExercises.length > 0">
+<section fxLayoutAlign="center" [ngStyle]="{'display': showTable ? 'flex' : 'none'}">
   <div class="table-wrapper" fxFlex="100%" fxFlex.gt-sm="909px">
     <mat-form-field>
       <mat-label>Filter</mat-label>
@@ -49,6 +49,6 @@
   </div>
 </section>
 
-<section *ngIf="pastExercises.length === 0">
+<section *ngIf="!showTable">
   <h2>No past exercises</h2>
 </section>

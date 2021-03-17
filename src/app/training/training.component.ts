@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Event } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { TrainingService } from './training.service';
 
@@ -13,7 +12,7 @@ export class TrainingComponent implements OnInit, OnDestroy {
   ongoingTraining: boolean;
 
   constructor(
-    private trainingService: TrainingService
+    private trainingService: TrainingService,
   ) {}
 
   ngOnInit(): void {

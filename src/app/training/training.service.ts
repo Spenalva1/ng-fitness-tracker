@@ -1,36 +1,59 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { AngularFirestore } from '@angular/fire/firestore';
+import { Subject, Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Exercise } from '../exercise.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TrainingService {
-  private availableExercises: Exercise[] = [
-    { id: 'crunches', name: 'Crunches', duration: 5, calories: 8 },
-    { id: 'touch-toes', name: 'Touch Toes', duration: 10, calories: 15 },
-    { id: 'side-lunges', name: 'Side Lunges', duration: 15, calories: 18 },
-    { id: 'burpees', name: 'Burpees', duration: 20, calories: 8 }
-  ];
-  public runningExerciseChanged = new Subject<boolean>();
+  private availableExercisesSubs: Subscription;
+  private pastExercisesSubs: Subscription;
+  private availableExercises: Exercise[] = [];
   private runningExercise: Exercise;
-  // tslint:disable-next-line: max-line-length
-  private pastExercises: Exercise[] = [
-    {id: 'crunches', name: 'Crunches', duration: 5, calories: 8, state: 'completed'},
-    {id: 'touch-toes', name: 'Touch Toes', duration: 0.7000000000000001, calories: 1.05, state: 'cancelled'},
-    {id: 'crunches', name: 'Crunches', duration: 0.55, calories: 0.88, state: 'cancelled'},
-    {id: 'side-lunges', name: 'Side Lunges', duration: 0.44999999999999996, calories: 0.54, state: 'cancelled'},
-    {id: 'burpees', name: 'Burpees', duration: 0.4, calories: 0.16, state: 'cancelled'}
-  ];
+  public availableExercisesChanged = new Subject<Exercise[]>();
+  public runningExerciseChanged = new Subject<boolean>();
+  public pastExercisesChanged = new Subject<Exercise[]>();
 
-  constructor() { }
+  constructor(
+    private firestore: AngularFirestore
+  ) { }
 
-  public getExercises(): Exercise[] {
-    return this.availableExercises.slice();
+  public fetchExercises(): void {
+    this.availableExercisesSubs = this.firestore.collection('availableExercises').valueChanges({idField: 'id'}).subscribe(data => {
+      this.availableExercises = (data as Exercise[]);
+      this.availableExercisesChanged.next([...this.availableExercises]);
+    });
   }
 
-  public getPastExercises(): Exercise[] {
-    return this.pastExercises.slice();
+  public stopFetchingExercises(): void {
+    if (this.availableExercisesSubs) {
+      this.availableExercisesSubs.unsubscribe();
+    }
+  }
+
+  public fetchPastExercises(): void {
+    this.pastExercisesSubs = this.firestore.collection('pastExercises').valueChanges({idField: 'id'})
+    .pipe(
+      map(data => {
+        return (data as Exercise[]).map(ex => {
+          return {
+            ...ex,
+            date: (ex.date as any).toDate()
+          };
+        });
+      })
+    )
+    .subscribe(exercises => {
+      this.pastExercisesChanged.next([...exercises]);
+    });
+  }
+
+  public stopFetchingPastExercises(): void {
+    if (this.pastExercisesSubs) {
+      this.pastExercisesSubs.unsubscribe();
+    }
   }
 
   public startExercise(id: string): void {
@@ -42,26 +65,30 @@ export class TrainingService {
   }
 
   public completeExercise(): void {
-    this.pastExercises.push({
+    this.storeExerciseInDatabase({
       ...this.runningExercise,
       state: 'completed'
     });
     this.runningExercise = null;
-    this.runningExerciseChanged.next(null);
+    this.runningExerciseChanged.next(false);
   }
 
   public cancelExercise(progress: number): void {
-    this.pastExercises.push({
+    this.storeExerciseInDatabase({
       ...this.runningExercise,
       duration: this.runningExercise.duration * (progress / 100),
       calories: this.runningExercise.calories * (progress / 100),
       state: 'cancelled'
     });
     this.runningExercise = null;
-    this.runningExerciseChanged.next(null);
+    this.runningExerciseChanged.next(false);
   }
 
   public getRunningExercise(): Exercise {
     return {...this.runningExercise};
+  }
+
+  public storeExerciseInDatabase(exercise: Exercise): void {
+    this.firestore.collection('pastExercises').add(exercise);
   }
 }
