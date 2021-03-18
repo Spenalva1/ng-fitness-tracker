@@ -41,7 +41,7 @@ export class AuthService {
       });
       this.router.navigate(['/']);
     } catch (error) {
-      console.log('Error ->', error);
+      this.snackbar.open(error.message, null, {duration: 3500});
     }
   }
 
@@ -50,7 +50,7 @@ export class AuthService {
       const { user } = await this.afAuth.signInWithEmailAndPassword(authData.email, authData.password);
       this.router.navigate(['/']);
     } catch (error) {
-      console.log('Error ->', error);
+      this.snackbar.open(error.message, null, {duration: 3500});
     }
   }
 

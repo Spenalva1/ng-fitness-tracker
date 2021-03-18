@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Exercise } from '../exercise.model';
@@ -17,13 +18,17 @@ export class TrainingService {
   public pastExercisesChanged = new Subject<Exercise[]>();
 
   constructor(
-    private firestore: AngularFirestore
+    private firestore: AngularFirestore,
+    private snackbar: MatSnackBar
   ) { }
 
   public fetchExercises(): void {
     this.availableExercisesSubs = this.firestore.collection('availableExercises').valueChanges({idField: 'id'}).subscribe(data => {
       this.availableExercises = (data as Exercise[]);
       this.availableExercisesChanged.next([...this.availableExercises]);
+    },
+    error => {
+      this.snackbar.open('Fetching exercises failed, please try again later', null, {duration: 3000});
     });
   }
 
@@ -47,6 +52,9 @@ export class TrainingService {
     )
     .subscribe(exercises => {
       this.pastExercisesChanged.next([...exercises]);
+    },
+    error => {
+      this.snackbar.open('Fetching exercises failed, please try again later');
     });
   }
 
@@ -88,10 +96,16 @@ export class TrainingService {
     return {...this.runningExercise};
   }
 
-  public storeExerciseInDatabase(exercise: Exercise, userId: string): void {
+  public async storeExerciseInDatabase(exercise: Exercise, userId: string): Promise<void> {
     if (!userId) {
       return;
     }
-    this.firestore.collection(`users/${userId}/exercises`).add(exercise);
+    try {
+      await this.firestore.collection(`users/${userId}/exercises`).add(exercise);
+      this.snackbar.open('Exercise recorded', null, {duration: 3000});
+    }
+    catch (error) {
+      this.snackbar.open('Exercise could not be recorded, sorry.', null, {duration: 3000});
+    }
   }
 }

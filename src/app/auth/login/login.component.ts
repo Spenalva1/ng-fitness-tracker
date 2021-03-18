@@ -10,6 +10,7 @@ import { AuthService } from '../auth.service';
 export class LoginComponent implements OnInit {
   public showPassword = false;
   public maxDate: Date;
+  public loading = false;
 
   constructor(
     private authService: AuthService
@@ -20,14 +21,24 @@ export class LoginComponent implements OnInit {
     this.maxDate.setFullYear(this.maxDate.getFullYear() - 18);
   }
 
-  onSubmit(form: FormGroup): void {
+  async onSubmit(form: FormGroup): Promise<void> {
     if (form.invalid) {
       return;
     }
 
-    this.authService.login({
-      email: form.value.email,
-      password: form.value.password
-    });
+    try {
+
+      this.loading = true;
+
+      await this.authService.login({
+        email: form.value.email,
+        password: form.value.password
+      });
+      this.loading = false;
+    }
+    catch (error) {
+      this.loading = false;
+    }
+
   }
 }

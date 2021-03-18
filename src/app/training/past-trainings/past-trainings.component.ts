@@ -35,6 +35,7 @@ export class PastTrainingsComponent implements OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    // TODO corregir estos subscribes
     this.authService.user.subscribe(user => {
       if (!user) {
         return;
