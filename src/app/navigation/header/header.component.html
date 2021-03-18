@@ -5,10 +5,14 @@
     </button>
   </div>
   <a routerLink="/" style="padding-left: 16px;">Fitness Tracker</a>
-  <ul fxFlex fxLayout fxLayoutAlign="flex-end" fxHide.xs>
-    <li *ngIf="isAuth"><a routerLink="/training">Training</a></li>
-    <li *ngIf="!isAuth"><a routerLink="/login">Login</a></li>
-    <li *ngIf="!isAuth"><a routerLink="/signup">Signup</a></li>
-    <li *ngIf="isAuth"><a style="cursor: pointer;" (click)="onLogout()">Logout</a></li>
+  <ul fxFlex fxLayout="center" fxLayoutAlign="flex-end" fxHide.xs *ngIf="authLoaded">
+    <li *ngIf="user"><a routerLink="/training">Training</a></li>
+    <li *ngIf="!user"><a routerLink="/login">Login</a></li>
+    <li *ngIf="!user"><a routerLink="/signup">Signup</a></li>
+    <li *ngIf="user"><a style="cursor: pointer;" (click)="onLogout()">Logout</a></li>
+    <li *ngIf="user">
+      <img [src]="user.photoURL">
+      <span>{{ user.displayName }}</span>
+    </li>
   </ul>
 </mat-toolbar>

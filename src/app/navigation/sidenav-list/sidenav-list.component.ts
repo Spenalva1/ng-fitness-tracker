@@ -1,6 +1,7 @@
 import { EventEmitter, Output, Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
+import { User } from 'src/app/auth/user.model';
 
 @Component({
   selector: 'app-sidenav-list',
@@ -9,16 +10,20 @@ import { AuthService } from 'src/app/auth/auth.service';
 })
 export class SidenavListComponent implements OnInit, OnDestroy {
   @Output() toggleSidenav = new EventEmitter<void>();
-  public isAuth: boolean;
   private isAuthSubs: Subscription;
+  public authLoaded = false;
+  public user: User;
+
 
   constructor(
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.isAuth = this.authService._isAuth;
-    this.isAuthSubs = this.authService.authChange.subscribe(auth => this.isAuth = auth);
+    this.isAuthSubs = this.authService.user.subscribe(user => {
+      this.user = user;
+      this.authLoaded = true;
+    });
   }
 
   ngOnDestroy(): void {

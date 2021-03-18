@@ -1,6 +1,7 @@
 import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
+import { User } from 'src/app/auth/user.model';
 
 @Component({
   selector: 'app-header',
@@ -9,16 +10,19 @@ import { AuthService } from 'src/app/auth/auth.service';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   @Output() toggleSidenav = new EventEmitter<void>();
-  public isAuth: boolean;
   private isAuthSubs: Subscription;
+  public user: User;
+  public authLoaded = false;
 
   constructor(
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.isAuth = this.authService._isAuth;
-    this.isAuthSubs = this.authService.authChange.subscribe(auth => this.isAuth = auth);
+    this.isAuthSubs = this.authService.user.subscribe(user => {
+      this.user = user;
+      this.authLoaded = true;
+    });
   }
 
   ngOnDestroy(): void {

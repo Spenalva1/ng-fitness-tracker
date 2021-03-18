@@ -1,41 +1,31 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/auth';
-import { Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { AuthData } from './auth-data.model';
 import { User } from './user.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { tap } from 'rxjs/operators';
+import { AngularFirestore, AngularFirestoreDocument } from '@angular/fire/firestore';
+import { switchMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private user: User = null;
-  public authChange = new Subject<boolean>();
-  private isAuth = false;
+  public user = new Observable<User>(null);
 
   constructor(
     private router: Router,
     private afAuth: AngularFireAuth,
+    private afs: AngularFirestore,
     private snackbar: MatSnackBar
-  ) {}
-
-  get _isAuth(): boolean {
-    return this.isAuth;
-  }
-
-  public initAuthListener(): Observable<User | any> {
-    return this.afAuth.authState
-    .pipe(
-      tap(user => {
+  ) {
+    this.user = this.afAuth.authState.pipe(
+      switchMap((user) => {
         if (user) {
-          this.isAuth = true;
-          this.authChange.next(true);
-        } else {
-          this.isAuth = false;
-          this.authChange.next(false);
+          return this.afs.doc<User>(`users/${user.uid}`).valueChanges();
         }
+        return of(null);
       })
     );
   }
@@ -43,6 +33,11 @@ export class AuthService {
   public async registerUser(authData: AuthData): Promise<void> {
     try {
       const { user } = await this.afAuth.createUserWithEmailAndPassword(authData.email, authData.password);
+      await user.updateProfile({
+        displayName: 'TheBest',
+        photoURL: 'https://www.alliancerehabmed.com/wp-content/uploads/icon-avatar-default.png'
+      });
+      this.updateUserData(user);
       this.router.navigate(['/']);
     } catch (error) {
       console.log('Error ->', error);
@@ -52,18 +47,30 @@ export class AuthService {
   public async login(authData: AuthData): Promise<void> {
     try {
       const { user } = await this.afAuth.signInWithEmailAndPassword(authData.email, authData.password);
+      this.updateUserData(user);
       this.router.navigate(['/']);
     } catch (error) {
       console.log('Error ->', error);
     }
   }
 
-  public logout(): void {
-    this.afAuth.signOut();
-    this.router.navigate(['/']);
+  private updateUserData(user: any): void {
+    const userRef: AngularFirestoreDocument<User> = this.afs.doc(`users/${user.uid}`);
+    const data: User = {
+      userId: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+    };
+    userRef.set(data, { merge: true });
   }
 
-  public getUser(): User {
-    return { ...this.user };
+  public async logout(): Promise<void> {
+    try {
+      await this.afAuth.signOut();
+      this.router.navigate(['/']);
+    } catch (error) {
+      console.log('Error ->', error);
+    }
   }
 }
