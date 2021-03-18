@@ -1,7 +1,8 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { FormGroup } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
+import { User } from 'src/app/auth/user.model';
 import { Exercise } from 'src/app/exercise.model';
 import { TrainingService } from '../training.service';
 
@@ -11,6 +12,7 @@ import { TrainingService } from '../training.service';
   styleUrls: ['./new-training.component.scss']
 })
 export class NewTrainingComponent implements OnInit, OnDestroy {
+  @Input() user: User;
   public exercises: Exercise[];
   private exercisesSubs: Subscription;
 

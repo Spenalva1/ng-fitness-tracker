@@ -33,8 +33,8 @@ export class TrainingService {
     }
   }
 
-  public fetchPastExercises(): void {
-    this.pastExercisesSubs = this.firestore.collection('pastExercises').valueChanges({idField: 'id'})
+  public fetchPastExercises(userId: string): void {
+    this.pastExercisesSubs = this.firestore.collection(`users/${userId}/exercises`).valueChanges({idField: 'id'})
     .pipe(
       map(data => {
         return (data as Exercise[]).map(ex => {
@@ -64,22 +64,22 @@ export class TrainingService {
     this.runningExerciseChanged.next(true);
   }
 
-  public completeExercise(): void {
+  public completeExercise(userId: string): void {
     this.storeExerciseInDatabase({
       ...this.runningExercise,
       state: 'completed'
-    });
+    }, userId);
     this.runningExercise = null;
     this.runningExerciseChanged.next(false);
   }
 
-  public cancelExercise(progress: number): void {
+  public cancelExercise(progress: number, userId: string): void {
     this.storeExerciseInDatabase({
       ...this.runningExercise,
       duration: this.runningExercise.duration * (progress / 100),
       calories: this.runningExercise.calories * (progress / 100),
       state: 'cancelled'
-    });
+    }, userId);
     this.runningExercise = null;
     this.runningExerciseChanged.next(false);
   }
@@ -88,7 +88,10 @@ export class TrainingService {
     return {...this.runningExercise};
   }
 
-  public storeExerciseInDatabase(exercise: Exercise): void {
-    this.firestore.collection('pastExercises').add(exercise);
+  public storeExerciseInDatabase(exercise: Exercise, userId: string): void {
+    if (!userId) {
+      return;
+    }
+    this.firestore.collection(`users/${userId}/exercises`).add(exercise);
   }
 }

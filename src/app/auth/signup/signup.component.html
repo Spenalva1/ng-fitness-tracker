@@ -6,6 +6,16 @@
       <mat-error *ngIf="emailInput.value?.length === 0 && emailInput.touched">Please enter an email.</mat-error>
       <mat-error *ngIf="emailInput.value?.length > 0">Email is invalid.</mat-error>
     </mat-form-field>
+    <mat-form-field hintLabel="Should be at least 4 characters long.">
+      <mat-label>Choose a username</mat-label>
+      <input matInput type="text" ngModel name="username" required minlength="4" #usernameInput="ngModel">
+      <mat-hint align="end">{{ usernameInput.value?.length }} / 4</mat-hint>
+      <mat-error *ngIf="usernameInput.hasError('required')">Please enter a password.</mat-error>
+      <mat-error *ngIf="!usernameInput.hasError('required')">
+        Should be at least 6 characters long.
+        <span class="pw-length">{{ usernameInput.value?.length }} / 4</span>
+      </mat-error>
+    </mat-form-field>
     <mat-form-field hintLabel="Should be at least 6 characters long.">
       <mat-label>Your password</mat-label>
       <input matInput type="password" ngModel name="password" required minlength="6" #pwInput="ngModel" [type]="showPassword ? 'text' : 'password'">

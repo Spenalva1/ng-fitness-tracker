@@ -33,11 +33,12 @@ export class AuthService {
   public async registerUser(authData: AuthData): Promise<void> {
     try {
       const { user } = await this.afAuth.createUserWithEmailAndPassword(authData.email, authData.password);
-      await user.updateProfile({
-        displayName: 'TheBest',
+      this.updateUserData({
+        email: user.email,
+        userId: user.uid,
+        username: authData.username,
         photoURL: 'https://www.alliancerehabmed.com/wp-content/uploads/icon-avatar-default.png'
       });
-      this.updateUserData(user);
       this.router.navigate(['/']);
     } catch (error) {
       console.log('Error ->', error);
@@ -47,22 +48,21 @@ export class AuthService {
   public async login(authData: AuthData): Promise<void> {
     try {
       const { user } = await this.afAuth.signInWithEmailAndPassword(authData.email, authData.password);
-      this.updateUserData(user);
       this.router.navigate(['/']);
     } catch (error) {
       console.log('Error ->', error);
     }
   }
 
-  private updateUserData(user: any): void {
-    const userRef: AngularFirestoreDocument<User> = this.afs.doc(`users/${user.uid}`);
+  private updateUserData(user: User): void {
+    const userRef: AngularFirestoreDocument<User> = this.afs.doc(`users/${user.userId}`);
     const data: User = {
-      userId: user.uid,
+      userId: user.userId,
       email: user.email,
-      displayName: user.displayName,
+      username: user.username,
       photoURL: user.photoURL,
     };
-    userRef.set(data, { merge: true });
+    userRef.set(data);
   }
 
   public async logout(): Promise<void> {

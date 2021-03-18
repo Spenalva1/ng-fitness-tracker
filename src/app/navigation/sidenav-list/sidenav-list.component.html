@@ -1,6 +1,6 @@
 <div fxLayout="column" *ngIf="user" class="avatar-wrapper">
   <img [src]="user.photoURL">
-  <h3>{{ user.displayName }}</h3>
+  <h3>{{ user.username }}</h3>
 </div>
 <mat-nav-list *ngIf="authLoaded">
   <a *ngIf="user" mat-list-item routerLink="/training" (click)="onToggleSidenav()">
