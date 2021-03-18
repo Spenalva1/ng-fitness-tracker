@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/auth';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { AuthData } from './auth-data.model';
 import { User } from './user.model';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -15,29 +17,33 @@ export class AuthService {
 
   constructor(
     private router: Router,
-    private afAuth: AngularFireAuth
+    private afAuth: AngularFireAuth,
+    private snackbar: MatSnackBar
   ) {}
 
   get _isAuth(): boolean {
     return this.isAuth;
   }
 
-  public initAuthListener(): void {
-    this.afAuth.authState.subscribe(user => {
-      if (user) {
-        this.isAuth = true;
-        this.authChange.next(true);
-        this.router.navigate(['/training']);
-      } else {
-        this.isAuth = false;
-        this.authChange.next(false);
-      }
-    });
+  public initAuthListener(): Observable<User | any> {
+    return this.afAuth.authState
+    .pipe(
+      tap(user => {
+        if (user) {
+          this.isAuth = true;
+          this.authChange.next(true);
+        } else {
+          this.isAuth = false;
+          this.authChange.next(false);
+        }
+      })
+    );
   }
 
   public async registerUser(authData: AuthData): Promise<void> {
     try {
       const { user } = await this.afAuth.createUserWithEmailAndPassword(authData.email, authData.password);
+      this.router.navigate(['/']);
     } catch (error) {
       console.log('Error ->', error);
     }
@@ -46,6 +52,7 @@ export class AuthService {
   public async login(authData: AuthData): Promise<void> {
     try {
       const { user } = await this.afAuth.signInWithEmailAndPassword(authData.email, authData.password);
+      this.router.navigate(['/']);
     } catch (error) {
       console.log('Error ->', error);
     }
