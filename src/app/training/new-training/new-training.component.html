@@ -6,7 +6,7 @@
         <div *ngIf="loading" style="margin: 10px;">
           <mat-spinner diameter="30"></mat-spinner>
         </div>
-        <mat-form-field *ngIf="!loading">
+        <mat-form-field *ngIf="!loading && exercises">
           <mat-label>Select type of training</mat-label>
           <mat-select required ngModel name="exercise" required>
             <mat-option *ngFor="let exercise of exercises" [value]="exercise.id">{{ exercise.name }}</mat-option>
@@ -14,7 +14,8 @@
         </mat-form-field>
       </mat-card-content>
       <mat-card-actions fxLayoutAlign="center">
-        <button [disabled]="f.invalid || loading" type="submit" mat-raised-button color="primary">Start</button>
+        <button *ngIf="exercises" [disabled]="f.invalid || loading" type="submit" mat-raised-button color="primary">Start</button>
+        <button *ngIf="!exercises && !loading" type="button" (click)="fetchExercises()" mat-raised-button color="primary">Try Again</button>
       </mat-card-actions>
     </mat-card>
   </form>

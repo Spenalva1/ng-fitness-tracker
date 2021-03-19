@@ -23,12 +23,14 @@ export class TrainingService {
   ) { }
 
   public fetchExercises(): void {
-    this.availableExercisesSubs = this.firestore.collection('availableExercises').valueChanges({idField: 'id'}).subscribe(data => {
+    this.availableExercisesSubs = this.firestore.collection('availableExercises').valueChanges({idField: 'id'})
+    .subscribe(data => {
       this.availableExercises = (data as Exercise[]);
       this.availableExercisesChanged.next([...this.availableExercises]);
     },
     error => {
       this.snackbar.open('Fetching exercises failed, please try again later', null, {duration: 3000});
+      this.availableExercisesChanged.next(null);
     });
   }
 
