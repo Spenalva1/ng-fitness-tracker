@@ -47,7 +47,7 @@ export class AuthService {
 
   public async login(authData: AuthData): Promise<void> {
     try {
-      const { user } = await this.afAuth.signInWithEmailAndPassword(authData.email, authData.password);
+      await this.afAuth.signInWithEmailAndPassword(authData.email, authData.password);
       this.router.navigate(['/']);
     } catch (error) {
       this.snackbar.open(error.message, null, {duration: 3500});
