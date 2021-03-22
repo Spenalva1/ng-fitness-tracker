@@ -37,7 +37,16 @@
 
     </mat-form-field>
     <mat-checkbox ngModel required name="agree" color="primary">Agree to term and conditions.</mat-checkbox>
-    <button style="align-self: center" [disabled]="f.invalid" mat-raised-button color="primary" type="submit">Signup</button>
+    <button
+    style="align-self: center"
+    [disabled]="f.invalid || loading"
+    mat-raised-button
+    color="primary"
+    type="submit"
+    [ngClass]="{'loading': loading}">
+      <span *ngIf="!loading">Login</span>
+      <span *ngIf="loading"><mat-spinner diameter="25"></mat-spinner></span>
+    </button>
     <a color="primary" routerLink="/login">Have an account? Go to Login page</a>
   </form>
 </section>

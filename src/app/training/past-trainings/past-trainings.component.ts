@@ -1,12 +1,12 @@
-import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subscription } from 'rxjs';
-import { AuthService } from 'src/app/auth/auth.service';
-import { User } from 'src/app/auth/user.model';
 import { Exercise } from 'src/app/exercise.model';
 import { TrainingService } from '../training.service';
+import { Store } from '@ngrx/store';
+import * as fromApp from '../../app.reducer';
 
 @Component({
   selector: 'app-past-trainings',
@@ -24,7 +24,7 @@ export class PastTrainingsComponent implements OnDestroy, AfterViewInit {
 
   constructor(
     private trainingService: TrainingService,
-    private authService: AuthService
+    private store: Store<fromApp.AppState>
   ) { }
 
   ngOnDestroy(): void {
@@ -36,8 +36,8 @@ export class PastTrainingsComponent implements OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     // TODO corregir estos subscribes
-    this.authService.user.subscribe(user => {
-      if (!user) {
+    this.store.select('auth').subscribe(authState => {
+      if (!authState.user) {
         return;
       }
       this.pastExercisesSubs = this.trainingService.pastExercisesChanged.subscribe(exercises => {
@@ -47,7 +47,7 @@ export class PastTrainingsComponent implements OnDestroy, AfterViewInit {
         this.dataSource.sort = this.sort;
         this.dataSource.paginator = this.paginator;
       });
-      this.trainingService.fetchPastExercises(user.userId);
+      this.trainingService.fetchPastExercises(authState.user.userId);
     });
   }
 

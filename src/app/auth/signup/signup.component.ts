@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Form, FormGroup } from '@angular/forms';
-import { AuthService } from '../auth.service';
+import { FormGroup } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import * as AuthActions from '../store/auth.actions';
+import * as fromApp from '../../app.reducer';
 
 @Component({
   selector: 'app-signup',
@@ -10,12 +12,14 @@ import { AuthService } from '../auth.service';
 export class SignupComponent implements OnInit {
   public showPassword = false;
   public maxDate: Date;
+  public loading = false;
 
   constructor(
-    private authService: AuthService
+    private store: Store<fromApp.AppState>
   ) { }
 
   ngOnInit(): void {
+    this.store.select('auth').subscribe(authState => this.loading = authState.loading);
     this.maxDate = new Date();
     this.maxDate.setFullYear(this.maxDate.getFullYear() - 18);
   }
@@ -24,11 +28,11 @@ export class SignupComponent implements OnInit {
     if (form.invalid) {
       return;
     }
-    this.authService.registerUser({
+    this.store.dispatch(AuthActions.SignupStart({
       email: form.value.email,
       password: form.value.password,
       username: form.value.username
-    });
+    }));
   }
 
 }

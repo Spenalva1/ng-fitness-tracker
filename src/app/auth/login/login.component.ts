@@ -11,7 +11,6 @@ import * as fromApp from '../../app.reducer';
 })
 export class LoginComponent implements OnInit {
   public showPassword = false;
-  public maxDate: Date;
   public loading = false;
 
   constructor(
@@ -19,32 +18,16 @@ export class LoginComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.maxDate = new Date();
-    this.maxDate.setFullYear(this.maxDate.getFullYear() - 18);
+    this.store.select('auth').subscribe(authState => this.loading = authState.loading);
   }
 
   async onSubmit(form: FormGroup): Promise<void> {
     if (form.invalid) {
       return;
     }
-
     this.store.dispatch(AuthActions.LoginStart({
       email: form.value.email,
       password: form.value.password
     }));
-    // try {
-
-    //   this.loading = true;
-
-    //   await this.authService.login({
-    //     email: form.value.email,
-    //     password: form.value.password
-    //   });
-    //   this.loading = false;
-    // }
-    // catch (error) {
-    //   this.loading = false;
-    // }
-
   }
 }
