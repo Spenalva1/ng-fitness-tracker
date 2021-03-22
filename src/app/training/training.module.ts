@@ -10,8 +10,8 @@ import { PastTrainingsComponent } from './past-trainings/past-trainings.componen
 import { TrainingComponent } from './training.component';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
 import { TrainingRoutingModule } from './training-routing.module';
-
-
+import { StoreModule } from '@ngrx/store';
+import { reducer as trainingReducer } from './store/training.reducer';
 
 @NgModule({
   declarations: [
@@ -27,7 +27,8 @@ import { TrainingRoutingModule } from './training-routing.module';
     MaterialModule,
     FlexLayoutModule,
     FormsModule,
-    TrainingRoutingModule
+    TrainingRoutingModule,
+    StoreModule.forFeature('training', trainingReducer)
   ]
 })
 export class TrainingModule { }
