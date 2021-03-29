@@ -1,10 +1,10 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { Observable, Subscription } from 'rxjs';
-import { User } from 'src/app/auth/user.model';
+import { Subscription } from 'rxjs';
 import { Exercise } from 'src/app/exercise.model';
 import { TrainingService } from '../training.service';
+import * as fromApp from '../../app.reducer';
+import { Store } from '@ngrx/store';
 
 @Component({
   selector: 'app-new-training',
@@ -12,26 +12,24 @@ import { TrainingService } from '../training.service';
   styleUrls: ['./new-training.component.scss']
 })
 export class NewTrainingComponent implements OnInit, OnDestroy {
-  @Input() user: User;
   private exercisesSubs: Subscription;
   public exercises: Exercise[];
   public loading = false;
 
   constructor(
     private trainingService: TrainingService,
+    private store: Store<fromApp.AppState>
   ) {}
 
   ngOnInit(): void {
-    this.loading = true;
-    this.exercisesSubs = this.trainingService.availableExercisesChanged.subscribe(exercises => {
-      this.exercises = exercises;
-      this.loading = false;
+    this.exercisesSubs = this.store.select('training').subscribe(trainingState => {
+      this.loading = trainingState.loading;
+      this.exercises = trainingState.availableExercises;
     });
     this.fetchExercises();
   }
 
   public fetchExercises(): void {
-    this.loading = true;
     this.trainingService.fetchExercises();
   }
 

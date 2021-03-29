@@ -1,7 +1,9 @@
 import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { AuthService } from 'src/app/auth/auth.service';
 import { User } from 'src/app/auth/user.model';
+import { Store } from '@ngrx/store';
+import * as AuthActions from '../../auth/store/auth.actions';
+import * as fromApp from '../../app.reducer';
 
 @Component({
   selector: 'app-header',
@@ -10,24 +12,24 @@ import { User } from 'src/app/auth/user.model';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   @Output() toggleSidenav = new EventEmitter<void>();
-  private isAuthSubs: Subscription;
+  private authSubs: Subscription;
   public user: User;
   public authLoaded = false;
 
   constructor(
-    private authService: AuthService
+    private store: Store<fromApp.AppState>
   ) {}
 
   ngOnInit(): void {
-    this.isAuthSubs = this.authService.user.subscribe(user => {
-      this.user = user;
+    this.authSubs = this.store.select('auth').subscribe(authState => {
+      this.user = authState.user,
       this.authLoaded = true;
     });
   }
 
   ngOnDestroy(): void {
-    if (this.isAuthSubs) {
-      this.isAuthSubs.unsubscribe();
+    if (this.authSubs) {
+      this.authSubs.unsubscribe();
     }
   }
 
@@ -36,7 +38,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   onLogout(): void{
-    this.authService.logout();
+    this.store.dispatch(AuthActions.Logout());
   }
 
 }

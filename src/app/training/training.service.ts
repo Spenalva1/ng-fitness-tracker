@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Store } from '@ngrx/store';
 import { Subject, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { Exercise } from '../exercise.model';
+import * as fromTraining from './store/training.reducer';
+import * as trainingActions from './store/training.actions';
 
 @Injectable({
   providedIn: 'root'
@@ -11,26 +14,25 @@ import { Exercise } from '../exercise.model';
 export class TrainingService {
   private availableExercisesSubs: Subscription;
   private pastExercisesSubs: Subscription;
-  private availableExercises: Exercise[] = [];
-  private runningExercise: Exercise;
-  public availableExercisesChanged = new Subject<Exercise[]>();
-  public runningExerciseChanged = new Subject<boolean>();
-  public pastExercisesChanged = new Subject<Exercise[]>();
 
   constructor(
     private firestore: AngularFirestore,
-    private snackbar: MatSnackBar
+    private snackbar: MatSnackBar,
+    private store: Store<fromTraining.State>
   ) { }
 
   public fetchExercises(): void {
+    this.store.dispatch(trainingActions.StartLoading());
     this.availableExercisesSubs = this.firestore.collection('availableExercises').valueChanges({idField: 'id'})
-    .subscribe(data => {
-      this.availableExercises = (data as Exercise[]);
-      this.availableExercisesChanged.next([...this.availableExercises]);
+    .subscribe((data: Exercise[]) => {
+      this.store.dispatch(trainingActions.AvailableExercisesUpdate({exercises: data}));
+      this.store.dispatch(trainingActions.StopLoading());
     },
     error => {
+      console.error(error);
       this.snackbar.open('Fetching exercises failed, please try again later', null, {duration: 3000});
-      this.availableExercisesChanged.next(null);
+      this.store.dispatch(trainingActions.AvailableExercisesUpdate({exercises: null}));
+      this.store.dispatch(trainingActions.StopLoading());
     });
   }
 
@@ -53,10 +55,12 @@ export class TrainingService {
       })
     )
     .subscribe(exercises => {
-      this.pastExercisesChanged.next([...exercises]);
+      this.store.dispatch(trainingActions.PastExercisesUpdate({exercises}));
     },
     error => {
-      this.snackbar.open('Fetching exercises failed, please try again later');
+      console.error(error);
+      this.snackbar.open('Fetching past exercises failed, please try again later', null, {duration: 3000});
+      this.store.dispatch(trainingActions.PastExercisesUpdate({exercises: null}));
     });
   }
 
@@ -67,35 +71,33 @@ export class TrainingService {
   }
 
   public startExercise(id: string): void {
-    this.runningExercise = {
-      ...this.availableExercises.find(ex => ex.id === id),
-      date: new Date()
-    };
-    this.runningExerciseChanged.next(true);
+    this.store.dispatch(trainingActions.StartExercise({id}));
   }
 
-  public completeExercise(userId: string): void {
+  public completeExercise(exercise: Exercise, userId: string): void {
+    this.store.dispatch(trainingActions.StopExercise());
+    if (!exercise) {
+      return;
+    }
     this.storeExerciseInDatabase({
-      ...this.runningExercise,
+      ...exercise,
       state: 'completed'
     }, userId);
-    this.runningExercise = null;
-    this.runningExerciseChanged.next(false);
+    this.store.dispatch(trainingActions.StopExercise());
   }
 
-  public cancelExercise(progress: number, userId: string): void {
+  public cancelExercise(exercise: Exercise, progress: number, userId: string): void {
+    this.store.dispatch(trainingActions.StopExercise());
+    if (!exercise) {
+      return;
+    }
     this.storeExerciseInDatabase({
-      ...this.runningExercise,
-      duration: this.runningExercise.duration * (progress / 100),
-      calories: this.runningExercise.calories * (progress / 100),
+      ...exercise,
+      duration: exercise.duration * (progress / 100),
+      calories: exercise.calories * (progress / 100),
       state: 'cancelled'
     }, userId);
-    this.runningExercise = null;
-    this.runningExerciseChanged.next(false);
-  }
-
-  public getRunningExercise(): Exercise {
-    return {...this.runningExercise};
+    this.store.dispatch(trainingActions.StopExercise());
   }
 
   public async storeExerciseInDatabase(exercise: Exercise, userId: string): Promise<void> {

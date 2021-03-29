@@ -1,7 +1,9 @@
 import { EventEmitter, Output, Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { AuthService } from 'src/app/auth/auth.service';
 import { User } from 'src/app/auth/user.model';
+import { Store } from '@ngrx/store';
+import * as AuthActions from '../../auth/store/auth.actions';
+import * as fromApp from '../../app.reducer';
 
 @Component({
   selector: 'app-sidenav-list',
@@ -10,25 +12,25 @@ import { User } from 'src/app/auth/user.model';
 })
 export class SidenavListComponent implements OnInit, OnDestroy {
   @Output() toggleSidenav = new EventEmitter<void>();
-  private isAuthSubs: Subscription;
+  private authSubs: Subscription;
   public authLoaded = false;
   public user: User;
 
 
   constructor(
-    private authService: AuthService
+    private store: Store<fromApp.AppState>
   ) {}
 
   ngOnInit(): void {
-    this.isAuthSubs = this.authService.user.subscribe(user => {
-      this.user = user;
+    this.authSubs = this.store.select('auth').subscribe(authState => {
+      this.user = authState.user,
       this.authLoaded = true;
     });
   }
 
   ngOnDestroy(): void {
-    if (this.isAuthSubs) {
-      this.isAuthSubs.unsubscribe();
+    if (this.authSubs) {
+      this.authSubs.unsubscribe();
     }
   }
 
@@ -38,7 +40,7 @@ export class SidenavListComponent implements OnInit, OnDestroy {
 
   onLogout(): void {
     this.onToggleSidenav();
-    this.authService.logout();
+    this.store.dispatch(AuthActions.Logout());
   }
 
 }

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { AuthService } from '../auth.service';
+import { Store } from '@ngrx/store';
+import * as AuthActions from '../store/auth.actions';
+import * as fromApp from '../../app.reducer';
 
 @Component({
   selector: 'app-login',
@@ -9,36 +11,23 @@ import { AuthService } from '../auth.service';
 })
 export class LoginComponent implements OnInit {
   public showPassword = false;
-  public maxDate: Date;
   public loading = false;
 
   constructor(
-    private authService: AuthService
+    private store: Store<fromApp.AppState>
   ) { }
 
   ngOnInit(): void {
-    this.maxDate = new Date();
-    this.maxDate.setFullYear(this.maxDate.getFullYear() - 18);
+    this.store.select('auth').subscribe(authState => this.loading = authState.loading);
   }
 
   async onSubmit(form: FormGroup): Promise<void> {
     if (form.invalid) {
       return;
     }
-
-    try {
-
-      this.loading = true;
-
-      await this.authService.login({
-        email: form.value.email,
-        password: form.value.password
-      });
-      this.loading = false;
-    }
-    catch (error) {
-      this.loading = false;
-    }
-
+    this.store.dispatch(AuthActions.LoginStart({
+      email: form.value.email,
+      password: form.value.password
+    }));
   }
 }
