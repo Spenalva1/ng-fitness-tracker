@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { User } from '../auth/user.model';
-import { TrainingService } from './training.service';
 import { Store } from '@ngrx/store';
 import * as fromApp from '../app.reducer';
 
@@ -17,13 +16,12 @@ export class TrainingComponent implements OnInit, OnDestroy {
   ongoingTraining: boolean;
 
   constructor(
-    private trainingService: TrainingService,
     private store: Store<fromApp.AppState>
   ) {}
 
   ngOnInit(): void {
-    this.exerciseSub = this.trainingService.runningExerciseChanged.subscribe(ex => {
-      this.ongoingTraining = ex;
+    this.exerciseSub = this.store.select('training').subscribe(trainingState => {
+      this.ongoingTraining = !!trainingState.runningExercise;
     });
     this.userSub = this.store.select('auth').subscribe(authState => {
       this.user = authState.user;

@@ -22,13 +22,17 @@ export class TrainingService {
   ) { }
 
   public fetchExercises(): void {
+    this.store.dispatch(trainingActions.StartLoading());
     this.availableExercisesSubs = this.firestore.collection('availableExercises').valueChanges({idField: 'id'})
     .subscribe((data: Exercise[]) => {
       this.store.dispatch(trainingActions.AvailableExercisesUpdate({exercises: data}));
+      this.store.dispatch(trainingActions.StopLoading());
     },
     error => {
+      console.error(error);
       this.snackbar.open('Fetching exercises failed, please try again later', null, {duration: 3000});
       this.store.dispatch(trainingActions.AvailableExercisesUpdate({exercises: null}));
+      this.store.dispatch(trainingActions.StopLoading());
     });
   }
 
@@ -54,8 +58,9 @@ export class TrainingService {
       this.store.dispatch(trainingActions.PastExercisesUpdate({exercises}));
     },
     error => {
-      this.snackbar.open('Fetching exercises failed, please try again later');
-      this.store.dispatch(trainingActions.AvailableExercisesUpdate({exercises: null}));
+      console.error(error);
+      this.snackbar.open('Fetching past exercises failed, please try again later', null, {duration: 3000});
+      this.store.dispatch(trainingActions.PastExercisesUpdate({exercises: null}));
     });
   }
 
@@ -69,26 +74,30 @@ export class TrainingService {
     this.store.dispatch(trainingActions.StartExercise({id}));
   }
 
-  public completeExercise(userId: string): void {
-    this.store.select('runningExercise').pipe(take(1)).subscribe(runningExercise => {
-      this.storeExerciseInDatabase({
-        ...runningExercise,
-        state: 'completed'
-      }, userId);
-      this.store.dispatch(trainingActions.StopExercise());
-    });
+  public completeExercise(exercise: Exercise, userId: string): void {
+    this.store.dispatch(trainingActions.StopExercise());
+    if (!exercise) {
+      return;
+    }
+    this.storeExerciseInDatabase({
+      ...exercise,
+      state: 'completed'
+    }, userId);
+    this.store.dispatch(trainingActions.StopExercise());
   }
 
-  public cancelExercise(progress: number, userId: string): void {
-    this.store.select('runningExercise').pipe(take(1)).subscribe(runningExercise => {
-      this.storeExerciseInDatabase({
-        ...runningExercise,
-        duration: runningExercise.duration * (progress / 100),
-        calories: runningExercise.calories * (progress / 100),
-        state: 'cancelled'
-      }, userId);
-      this.store.dispatch(trainingActions.StopExercise());
-    });
+  public cancelExercise(exercise: Exercise, progress: number, userId: string): void {
+    this.store.dispatch(trainingActions.StopExercise());
+    if (!exercise) {
+      return;
+    }
+    this.storeExerciseInDatabase({
+      ...exercise,
+      duration: exercise.duration * (progress / 100),
+      calories: exercise.calories * (progress / 100),
+      state: 'cancelled'
+    }, userId);
+    this.store.dispatch(trainingActions.StopExercise());
   }
 
   public async storeExerciseInDatabase(exercise: Exercise, userId: string): Promise<void> {

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterContentInit, AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
@@ -13,13 +13,13 @@ import * as fromApp from '../../app.reducer';
   templateUrl: './past-trainings.component.html',
   styleUrls: ['./past-trainings.component.scss']
 })
-export class PastTrainingsComponent implements OnDestroy, AfterViewInit {
+export class PastTrainingsComponent implements OnDestroy, AfterContentInit {
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
   displayedColumns: string[] = ['date', 'name', 'duration', 'calories', 'state'];
   dataSource = new MatTableDataSource<Exercise>();
   pastExercises: Exercise[] = [];
-  pastExercisesSubs: Subscription;
+  exercisesSubs: Subscription;
   showTable = false;
 
   constructor(
@@ -28,21 +28,24 @@ export class PastTrainingsComponent implements OnDestroy, AfterViewInit {
   ) { }
 
   ngOnDestroy(): void {
-    if (this.pastExercisesSubs) {
-      this.pastExercisesSubs.unsubscribe();
+    if (this.exercisesSubs) {
+      this.exercisesSubs.unsubscribe();
     }
     this.trainingService.stopFetchingPastExercises();
   }
 
-  ngAfterViewInit(): void {
+  ngAfterContentInit(): void {
     // TODO corregir estos subscribes
     this.store.select('auth').subscribe(authState => {
       if (!authState.user) {
         return;
       }
-      this.pastExercisesSubs = this.trainingService.pastExercisesChanged.subscribe(exercises => {
-        this.showTable = exercises.length > 0;
-        this.pastExercises = exercises;
+      this.exercisesSubs = this.store.select('training').subscribe(trainingState => {
+        if (!trainingState.pastExercises) {
+          return;
+        }
+        this.showTable = trainingState.pastExercises.length > 0;
+        this.pastExercises = trainingState.pastExercises;
         this.dataSource.data = this.pastExercises;
         this.dataSource.sort = this.sort;
         this.dataSource.paginator = this.paginator;
